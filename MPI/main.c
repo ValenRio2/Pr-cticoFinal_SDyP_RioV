@@ -8,14 +8,14 @@
 
 
 #define cant_ciclos 5
-#define cant_semanas 24
-#define n 20
+#define cant_semanas 100
+#define n 150
 
-#define BLANCO=0, //Árbol podado.
-#define AZUL=1, // Árbol enfermo con tratamiento antifúngico
-#define ROJO=2, //Árbol enfermo con síntomas visibles
-#define NARANJA=3, //Árbol enfectado con esporas (enfermo sin sintomas visibles)
-#define VERDE=4, //Árbol sano
+#define BLANCO 0 //Árbol podado.
+#define AZUL 1 // Árbol enfermo con tratamiento antifúngico
+#define ROJO 2 //Árbol enfermo con síntomas visibles
+#define NARANJA 3 //Árbol enfectado con esporas (enfermo sin sintomas visibles)
+#define VERDE 4 //Árbol sano
 
 
 typedef struct {
@@ -34,6 +34,7 @@ void set_seed_random(int);
 void Proceso_Matriz(Celda**,Celda**,int, int,int);
 Celda proceso_unaCelda(Celda,int);
 void VisualizarMatriz(Celda** matriz,int,int);
+MPI_Datatype nuevo_Tipo();
 
 int main(int argc, char **argv) {
     int id_proceso, nro_proceso;
@@ -52,7 +53,7 @@ int main(int argc, char **argv) {
 
     Celda ** MatrizActual;
     Celda ** MatrizSiguiente;
-    Celda ** Matriz_auxiliar;
+    Celda ** auxiliar;
 
     if(id_proceso==0){
         MatrizActual=CrearMatriz(div+2,n);
@@ -80,7 +81,7 @@ int main(int argc, char **argv) {
         for(int i = 0;i<cant_semanas;i++) {
             if (id_proceso % 2 == 1) {
                 if (id_proceso == nro_proceso - 1) {
-                    MPI_Recv(&(MatrizActual[0][0]), n, , id_proceso - 1, 0, MPI_COMM_WORLD, &status);
+                    MPI_Recv(&(MatrizActual[0][0]), n, nueva_celda, id_proceso - 1, 0, MPI_COMM_WORLD, &status);
                     MPI_Recv(&(MatrizActual[1][0]), n, nueva_celda, id_proceso - 1, 0, MPI_COMM_WORLD, &status);
                     MPI_Send(&(MatrizActual[2][0]), n, nueva_celda, id_proceso - 1, 0, MPI_COMM_WORLD);
                     MPI_Send(&(MatrizActual[3][0]), n, nueva_celda, id_proceso - 1, 0, MPI_COMM_WORLD);
@@ -123,9 +124,9 @@ int main(int argc, char **argv) {
                         Proceso_Matriz(MatrizActual, MatrizSiguiente, 2, div + 2, div + 4);
                     }
                 }
-                Matriz_auxiliar = MatrizSiguiente;
-                MatrizSiguiente = MatrizActual;
-                MatrizActual = Matriz_auxiliar;
+                auxiliar=MatrizSiguiente;
+                MatrizSiguiente=MatrizActual;
+                MatrizActual=auxiliar;
             }
         }
         if(id_proceso==0){

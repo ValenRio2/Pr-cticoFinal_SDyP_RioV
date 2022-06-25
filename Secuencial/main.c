@@ -9,11 +9,11 @@
 #define n 20
 
 
-#define BLANCO=0, //Árbol podado.
-#define AZUL=1, // Árbol enfermo con tratamiento antifúngico
-#define ROJO=2, //Árbol enfermo con síntomas visibles
-#define NARANJA=3, //Árbol enfectado con esporas (enfermo sin sintomas visibles)
-#define VERDE=4, //Árbol sano
+#define BLANCO 0 //Árbol podado.
+#define AZUL 1 // Árbol enfermo con tratamiento antifúngico
+#define ROJO 2 //Árbol enfermo con síntomas visibles
+#define NARANJA 3 //Árbol enfectado con esporas (enfermo sin sintomas visibles)
+#define VERDE 4 //Árbol sano
 
 typedef struct {
     int estado;
@@ -41,23 +41,23 @@ int main() {
 
     Celda **estadoActual=CrearMatriz();
     Celda **estadoSiguiente=CrearMatriz();
-    Celda **Aux=CrearMatriz();
+    Celda **auxiliar=CrearMatriz();
 
     for(int j = 0; j < cant_ciclos ; j++){
         randomaux=rand();
         srand(((rand()+randomaux)*13)*7);
         start=clock();
         InicializarMatriz(estadoActual);
-        VisualizarMatriz(estadoActual);
-        printf("\n");
+        /*VisualizarMatriz(estadoActual);
+        printf("\n");*/
         for(int i = 0;i<cant_semanas;i++){
             srand(((rand()+randomaux)*13)*7);
             Proceso_Matriz(estadoActual,estadoSiguiente);
-            Aux=estadoSiguiente;
-            estadoActual=Aux;
+            auxiliar=estadoSiguiente;
             estadoSiguiente=estadoActual;
-            VisualizarMatriz(estadoActual);
-            printf("\n");
+            estadoActual=auxiliar;
+            /*VisualizarMatriz(estadoActual);
+            printf("\n");*/
 
         }
         finish=clock();

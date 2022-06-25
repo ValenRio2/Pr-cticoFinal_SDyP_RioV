@@ -8,15 +8,16 @@
 
 
 #define cant_ciclos 5
-#define cant_semanas 24
-#define n 20
+#define cant_semanas 100
+#define n 150
 
 
-#define BLANCO=0, //Árbol podado.
-#define AZUL=1, // Árbol enfermo con tratamiento antifúngico
-#define ROJO=2, //Árbol enfermo con síntomas visibles
-#define NARANJA=3, //Árbol enfectado con esporas (enfermo sin sintomas visibles)
-#define VERDE=4, //Árbol sano
+#define BLANCO 0 //Árbol podado.
+#define AZUL 1 // Árbol enfermo con tratamiento antifúngico
+#define ROJO 2 //Árbol enfermo con síntomas visibles
+#define NARANJA 3 //Árbol enfectado con esporas (enfermo sin sintomas visibles)
+#define VERDE 4 //Árbol sano
+
 
 typedef struct {
     int estado;
@@ -34,6 +35,7 @@ void set_seed_random(int);
 void Proceso_Matriz(Celda**,Celda**,int, int,int);
 Celda proceso_unaCelda(Celda,int);
 void VisualizarMatriz(Celda** matriz,int,int);
+MPI_Datatype nuevo_Tipo();
 
 int main(int argc, char **argv) {
     int id_proceso, nro_proceso;
@@ -52,7 +54,7 @@ int main(int argc, char **argv) {
 
     Celda ** MatrizActual;
     Celda ** MatrizSiguiente;
-    Celda ** Matriz_auxiliar;
+    Celda ** auxiliar;
 
     if(id_proceso==0){
         MatrizActual=CrearMatriz(div+2,n);
@@ -80,7 +82,7 @@ int main(int argc, char **argv) {
         for(int i = 0;i<cant_semanas;i++) {
             if (id_proceso % 2 == 1) {
                 if (id_proceso == nro_proceso - 1) {
-                    MPI_Recv(&(MatrizActual[0][0]), n, , id_proceso - 1, 0, MPI_COMM_WORLD, &status);
+                    MPI_Recv(&(MatrizActual[0][0]), n, nueva_celda, id_proceso - 1, 0, MPI_COMM_WORLD, &status);
                     MPI_Recv(&(MatrizActual[1][0]), n, nueva_celda, id_proceso - 1, 0, MPI_COMM_WORLD, &status);
                     MPI_Send(&(MatrizActual[2][0]), n, nueva_celda, id_proceso - 1, 0, MPI_COMM_WORLD);
                     MPI_Send(&(MatrizActual[3][0]), n, nueva_celda, id_proceso - 1, 0, MPI_COMM_WORLD);
@@ -123,9 +125,9 @@ int main(int argc, char **argv) {
                         Proceso_Matriz(MatrizActual, MatrizSiguiente, 2, div + 2, div + 4);
                     }
                 }
-                Matriz_auxiliar = MatrizSiguiente;
-                MatrizSiguiente = MatrizActual;
-                MatrizActual = Matriz_auxiliar;
+                auxiliar=MatrizSiguiente;
+                MatrizSiguiente=MatrizActual;
+                MatrizActual=auxiliar;
             }
         }
         if(id_proceso==0){
@@ -173,9 +175,14 @@ void set_seed_random(int id_process){
 
 void InicializarMatriz(Celda ** estado_Actual, int inicio, int fin){
     Celda auxiliar;
-    #pragma omp parallel for shared(estado_Actual) private(i,e,auxiliar) num_threads(3)
-    for(int i=inicio; i<fin; i++){
-        for(int e=0; e<n;e++){
+    int i,e,dim,dim2;
+    dim=floor(n/3);
+    dim2=floor(n/4);
+    #pragma omp parallel for schedule(dynamic,dim) private (i) num_threads(2)
+    //#pragma omp parallel for shared(estado_Actual) private(i,e,auxiliar) num_threads(3)
+    for( i=inicio; i<fin; i++){
+       #pragma omp parallel for schedule(dynamic,dim2) private (e) num_threads(8)
+        for( e=0; e<n;e++){
             float d_prob= generadorUniforme_F(rand(),0,100);
             if(d_prob<=0.05){
                 auxiliar.estado=2;
@@ -392,9 +399,13 @@ Celda proceso_unaCelda(Celda una_celda, int cant_enfermos){
 
 void Proceso_Matriz(Celda ** estadoActual,Celda ** estadoSiguiente, int inicio, int fin, int lim) {
     int cant_vecinosEnfermos=0;
-    #pragma omp parallel for shared(estadoActual, estadoSiguiente) private(i,j,cant_vecinosEnfermos) num_threads(3)
-    for (int i = inicio; i < fin; i++) {
-        for (int j = 0; j < n; j++) {
+    int j;
+    int i; 
+    #pragma omp parallel for schedule(dynamic,2) private (i) num_threads(2)
+    //#pragma omp parallel for shared(estadoActual, estadoSiguiente) private(i,j,cant_vecinosEnfermos) num_threads(3)
+    for (i = inicio; i < fin; i++) {
+        #pragma omp parallel for schedule(dynamic,4) private (j) num_threads(8)
+        for ( j = 0; j < n; j++) {
             if(estadoActual[i][j].estado==4){
                 if (i + 1 < lim) {
                     cant_vecinosEnfermos += estadoActual[i + 1][j].estado == 2;

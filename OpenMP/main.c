@@ -9,11 +9,11 @@
 #define cant_semanas 24
 #define n 20
 
-#define BLANCO=0, //Árbol podado.
-#define AZUL=1, // Árbol enfermo con tratamiento antifúngico
-#define ROJO=2, //Árbol enfermo con síntomas visibles
-#define NARANJA=3, //Árbol enfectado con esporas (enfermo sin sintomas visibles)
-#define VERDE=4, //Árbol sano
+#define BLANCO 0 //Árbol podado.
+#define AZUL 1 // Árbol enfermo con tratamiento antifúngico
+#define ROJO 2 //Árbol enfermo con síntomas visibles
+#define NARANJA 3 //Árbol enfectado con esporas (enfermo sin sintomas visibles)
+#define VERDE 4 //Árbol sano
 
 typedef struct {
     int estado;
@@ -41,7 +41,7 @@ int main() {
 
     Celda **estadoActual=CrearMatriz();
     Celda **estadoSiguiente=CrearMatriz();
-    Celda **Matriz_Aux=CrearMatriz();
+    Celda **auxiliar=CrearMatriz();
 
     for(int j = 0; j < cant_ciclos ; j++){
         randomaux=rand();
@@ -53,9 +53,9 @@ int main() {
         for(int i = 0;i<cant_semanas;i++){
             srand(((rand()+randomaux)*13)*7);
             Proceso_Matriz(estadoActual,estadoSiguiente);
-            Matriz_Aux=estadoSiguiente;
-            estadoActual=Matriz_Aux;
+            auxiliar=estadoSiguiente;
             estadoSiguiente=estadoActual;
+            estadoActual=auxiliar;
             //VisualizarMatriz(estadoActual);
             //printf("\n");
 
@@ -95,11 +95,12 @@ int generadorUniforme_I(int random,int a, int b) {
 void InicializarMatriz(Celda ** estado_Actual){
     Celda auxiliar;
 
-    int i,e;
-
-    #pragma omp parallel for schedule(static,4) private (i) num_threads(4)
+    int i,e,dim,dim2;
+    dim=floor(n/3);
+    dim2=floor(n/4);
+    #pragma omp parallel for schedule(dynamic,dim) private (i) num_threads(2)
     for(i=0; i<n; i++){
-        #pragma omp parallel for schedule(static,4) private (e) num_threads(4)
+        #pragma omp parallel for schedule(dynamic,dim2) private (e) num_threads(8)
         for(e=0; e<n;e++){
             float d_prob= generadorUniforme_F(rand(),0,100);
             if(d_prob<=0.05){
@@ -293,9 +294,9 @@ Celda proceso_unaCelda(Celda una_celda, int cant_enfermos){
 void Proceso_Matriz(Celda ** estadoActual,Celda ** estadoSiguiente) {
     int cant_vecinosEnfermos=0, i,  j;
 
-    #pragma omp parallel for schedule(static,4) private (i) num_threads(4)
+    #pragma omp parallel for schedule(dynamic,2) private (i) num_threads(2)
     for (i = 0; i < n; i++) {
-        #pragma omp parallel for schedule(static,4) private (j) num_threads(4)
+        #pragma omp parallel for schedule(dynamic,4) private (j) num_threads(8)
         for (j = 0; j < n; j++) {
             if(estadoActual[i][j].estado==4){
                 if (i + 1 < n) {
