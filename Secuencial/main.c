@@ -5,8 +5,8 @@
 
 
 #define cant_ciclos 5
-#define cant_semanas 24
-#define n 20
+#define cant_semanas 1200
+#define n 800
 
 
 #define BLANCO 0 //Árbol podado.
