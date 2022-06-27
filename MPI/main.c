@@ -8,8 +8,8 @@
 
 
 #define cant_ciclos 5
-#define cant_semanas 100
-#define n 150
+#define cant_semanas 1200
+#define n 800
 
 #define BLANCO 0 //Árbol podado.
 #define AZUL 1 // Árbol enfermo con tratamiento antifúngico
