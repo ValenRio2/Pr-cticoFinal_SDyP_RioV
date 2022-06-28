@@ -8,8 +8,8 @@
 
 
 #define cant_ciclos 5
-#define cant_semanas 100
-#define n 150
+#define cant_semanas 1200
+#define n 800
 
 
 #define BLANCO 0 //Árbol podado.
@@ -178,10 +178,10 @@ void InicializarMatriz(Celda ** estado_Actual, int inicio, int fin){
     int i,e,dim,dim2;
     dim=floor(n/3);
     dim2=floor(n/4);
-    #pragma omp parallel for schedule(dynamic,dim) private (i) num_threads(2)
+    //#pragma omp parallel for schedule(dynamic,dim) private (i) num_threads(2)
     //#pragma omp parallel for shared(estado_Actual) private(i,e,auxiliar) num_threads(3)
     for( i=inicio; i<fin; i++){
-       #pragma omp parallel for schedule(dynamic,dim2) private (e) num_threads(8)
+      // #pragma omp parallel for schedule(dynamic,dim2) private (e) num_threads(8)
         for( e=0; e<n;e++){
             float d_prob= generadorUniforme_F(rand(),0,100);
             if(d_prob<=0.05){
@@ -399,13 +399,13 @@ Celda proceso_unaCelda(Celda una_celda, int cant_enfermos){
 
 void Proceso_Matriz(Celda ** estadoActual,Celda ** estadoSiguiente, int inicio, int fin, int lim) {
     int cant_vecinosEnfermos=0;
-    int j;
-    int i; 
-    #pragma omp parallel for schedule(dynamic,2) private (i) num_threads(2)
-    //#pragma omp parallel for shared(estadoActual, estadoSiguiente) private(i,j,cant_vecinosEnfermos) num_threads(3)
-    for (i = inicio; i < fin; i++) {
-        #pragma omp parallel for schedule(dynamic,4) private (j) num_threads(8)
-        for ( j = 0; j < n; j++) {
+    int repartirTrabajo, repartirTrabajo1;
+    repartirTrabajo=floor(n/3);
+    repartirTrabajo1=floor(n/8);
+    #pragma omp parallel for schedule(dynamic,repartirTrabajo) private (i) num_threads(2)
+    for (int i = inicio; i < fin; i++) {
+        #pragma omp parallel for schedule(dynamic,repartirTrabajo1) private (j) num_threads(2)
+        for ( int j = 0; j < n; j++) {
             if(estadoActual[i][j].estado==4){
                 if (i + 1 < lim) {
                     cant_vecinosEnfermos += estadoActual[i + 1][j].estado == 2;
