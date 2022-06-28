@@ -399,13 +399,14 @@ Celda proceso_unaCelda(Celda una_celda, int cant_enfermos){
 
 void Proceso_Matriz(Celda ** estadoActual,Celda ** estadoSiguiente, int inicio, int fin, int lim) {
     int cant_vecinosEnfermos=0;
+    int i,j;
     int repartirTrabajo, repartirTrabajo1;
     repartirTrabajo=floor(n/3);
     repartirTrabajo1=floor(n/8);
     #pragma omp parallel for schedule(dynamic,repartirTrabajo) private (i) num_threads(2)
-    for (int i = inicio; i < fin; i++) {
+    for (i = inicio; i < fin; i++) {
         #pragma omp parallel for schedule(dynamic,repartirTrabajo1) private (j) num_threads(2)
-        for ( int j = 0; j < n; j++) {
+        for (j = 0; j < n; j++) {
             if(estadoActual[i][j].estado==4){
                 if (i + 1 < lim) {
                     cant_vecinosEnfermos += estadoActual[i + 1][j].estado == 2;
