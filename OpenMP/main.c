@@ -300,7 +300,7 @@ void Proceso_Matriz(Celda ** estadoActual,Celda ** estadoSiguiente) {
 
     #pragma omp parallel for schedule(dynamic,repartirTrabajo) private (i) num_threads(2)
     for (i = 0; i < n; i++) {
-        #pragma omp parallel for schedule(dynamic,repartirTrabajo1) private (j) num_threads(2)
+        #pragma omp parallel for schedule(dynamic,repartirTrabajo1) private (j) num_threads(4)
         for (j = 0; j < n; j++) {
             if(estadoActual[i][j].estado==4){
                 if (i + 1 < n) {
